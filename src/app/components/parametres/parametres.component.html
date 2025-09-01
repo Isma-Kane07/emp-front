@@ -1,0 +1,33 @@
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Informations de Session</h5>
+      </div>
+      <div class="card-body">
+        <p><strong>Utilisateur connecté:</strong> {{ authService.getToken() | json }}</p>
+        <p><strong>Token:</strong> {{ authService.getToken()?.substring(0, 20) }}...</p>
+        <button class="btn btn-info" (click)="authService.logout()">Regénérer Token</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Préférences</h5>
+      </div>
+      <div class="card-body">
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="notifications">
+          <label class="form-check-label" for="notifications">Notifications</label>
+        </div>
+        <div class="form-check form-switch mb-3">
+          <input class="form-check-input" type="checkbox" id="darkMode">
+          <label class="form-check-label" for="darkMode">Mode sombre</label>
+        </div>
+        <button class="btn btn-success">Sauvegarder</button>
+      </div>
+    </div>
+  </div>
+</div>

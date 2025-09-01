@@ -1,0 +1,120 @@
+/* Styles pour les missions */
+.table th {
+  background-color: #343a40 !important;
+  color: white !important;
+  border-top: none;
+  font-weight: 600;
+  padding: 0.75rem;
+}
+
+.table td {
+  padding: 0.75rem;
+  vertical-align: middle;
+}
+
+/* Badges de statut */
+.badge {
+  font-size: 0.875em;
+  padding: 0.5em 0.75em;
+  border-radius: 0.375rem;
+  font-weight: 500;
+}
+
+.bg-warning { background-color: #ffc107 !important; }
+.bg-primary { background-color: #007bff !important; }
+.bg-success { background-color: #198754 !important; }
+.bg-danger { background-color: #dc3545 !important; }
+.bg-secondary { background-color: #6c757d !important; }
+
+/* Boutons d'action */
+.btn-group-sm .btn {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+}
+
+.btn-outline-info {
+  color: #0dcaf0;
+  border-color: #0dcaf0;
+}
+
+.btn-outline-info:hover {
+  color: #000;
+  background-color: #0dcaf0;
+  border-color: #0dcaf0;
+}
+
+.btn-outline-primary {
+  color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-outline-primary:hover {
+  color: #000;
+  background-color: #007bff;
+  border-color: #007bff;
+}
+
+.btn-outline-danger {
+  color: #dc3545;
+  border-color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+  color: #000;
+  background-color: #dc3545;
+  border-color: #dc3545;
+}
+
+/* Modal */
+.modal-content {
+  border: none;
+  border-radius: 0.5rem;
+  box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.modal-header {
+  background-color: #007bff;
+  color: white;
+  border-bottom: 1px solid #dee2e6;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+.modal-footer {
+  border-top: 1px solid #dee2e6;
+  border-radius: 0 0 0.5rem 0.5rem;
+}
+
+
+/* Alignement */
+.align-middle {
+  vertical-align: middle !important;
+}
+
+.text-center {
+  text-align: center !important;
+}
+
+/* Styles pour le filtre */
+.input-group {
+  max-width: 400px;
+}
+
+.alert-info {
+  background-color: #d1ecf1;
+  border-color: #bee5eb;
+  color: #0c5460;
+}
+
+
+
+/* Badges de statut */
+.bg-warning { background-color: #ffc107 !important; }
+.bg-primary { background-color: #007bff !important; }
+.bg-success { background-color: #198754 !important; }
+.bg-danger { background-color: #dc3545 !important; }
+
+/* Animation pour le filtre */
+.btn-outline-primary:hover {
+  transform: translateY(-1px);
+  transition: all 0.2s ease;
+}

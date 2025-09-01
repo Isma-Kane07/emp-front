@@ -1,0 +1,66 @@
+<div class="row">
+  <div class="col-md-3 mb-4">
+    <div class="card bg-primary text-white text-center">
+      <div class="card-body">
+        <h5 class="card-title">Employés</h5>
+        <h2 class="display-4">{{ stats.totalEmployes }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-4">
+    <div class="card bg-success text-white text-center">
+      <div class="card-body">
+        <h5 class="card-title">Départements</h5>
+        <h2 class="display-4">{{ stats.totalDepartements }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-4">
+    <div class="card bg-info text-white text-center">
+      <div class="card-body">
+        <h5 class="card-title">Missions</h5>
+        <h2 class="display-4">{{ stats.totalMissions }}</h2>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-3 mb-4">
+    <div class="card bg-warning text-white text-center">
+      <div class="card-body">
+        <h5 class="card-title">En Cours</h5>
+        <h2 class="display-4">{{ stats.missionsEnCours }}</h2>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Actions Rapides</h5>
+      </div>
+      <div class="card-body">
+        <div class="d-grid gap-2">
+          <a routerLink="/employes/create" class="btn btn-primary">Nouvel Employé</a>
+          <a routerLink="/missions/create" class="btn btn-success">Nouvelle Mission</a>
+          <a routerLink="/departements" class="btn btn-info">Gérer Départements</a>
+          <a routerLink="/grades" class="btn btn-warning">Gérer Grades</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h5>Dernières Activités</h5>
+      </div>
+      <div class="card-body">
+        <p class="text-muted">Aucune activité récente</p>
+      </div>
+    </div>
+  </div>
+</div>

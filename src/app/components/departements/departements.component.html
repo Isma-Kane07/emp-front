@@ -1,0 +1,249 @@
+<div class="container-fluid">
+  <!-- En-tête -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Gestion des Départements</h2>
+    <button class="btn btn-primary" (click)="createDepartement()">
+      <i class="bi bi-plus-circle me-2"></i>Nouveau Département
+    </button>
+  </div>
+
+  <!-- Message d'erreur -->
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+  }
+
+  <!-- Formulaire -->
+  @if (showForm) {
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">{{ isEditing ? 'Modifier' : 'Créer' }} un Département</h5>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="onSubmit()" #departementForm="ngForm">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label">Nom du Département *</label>
+              <input type="text" class="form-control"
+                     [(ngModel)]="selectedDepartement.nomDepartement"
+                     name="nomDepartement" required>
+            </div>
+
+            <div class="col-md-6">
+              <label class="form-label">Taille Maximale *</label>
+              <input type="number" class="form-control"
+                     [(ngModel)]="selectedDepartement.tailleMax"
+                     name="tailleMax" min="1" required>
+            </div>
+
+            <div class="col-12">
+              <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success"
+                        [disabled]="!departementForm.form.valid">
+                  {{ isEditing ? 'Modifier' : 'Créer' }}
+                </button>
+                <button type="button" class="btn btn-secondary"
+                        (click)="resetForm()">
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Tableau des départements -->
+  <div class="card">
+    <div class="card-header bg-light text-dark">
+      <h5 class="mb-0">Liste des Départements</h5>
+    </div>
+    <div class="card-body p-0">
+      @if (departements.length === 0) {
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-building display-4 d-block mb-3"></i>
+          Aucun département trouvé
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead class="table-dark">
+  <tr>
+    <th>Nom</th>
+    <th>Taille Max</th>
+    <th>Taille Actuelle</th>
+    <th>Disponibilité</th>
+    <th>Actions</th>
+  </tr>
+</thead>
+<tbody>
+  @for (departement of departements; track departement.id) {
+    <tr>
+      <td class="fw-bold">{{ departement.nomDepartement }}</td>
+      <td>{{ departement.tailleMax }}</td>
+      <td>{{ departement.tailleActuelle ?? 'Chargement...' }}</td>
+      <td>
+        @if (departement.tailleActuelle !== undefined && departement.tailleActuelle !== null) {
+          @let disponibility = departement.tailleMax - departement.tailleActuelle;
+          @let badgeClass = disponibility > 0 ? 'bg-success' : (disponibility === 0 ? 'bg-warning' : 'bg-danger');
+
+          <span class="badge {{badgeClass}}">
+            {{ disponibility }} places
+          </span>
+        } @else {
+          <span class="badge bg-secondary">Calcul...</span>
+        }
+      </td>
+      <td>
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-info"
+                  (click)="viewDepartement(departement)"
+                  title="Voir détails">
+            <i class="bi bi-eye"></i>
+          </button>
+          <button class="btn btn-outline-primary"
+                  (click)="editDepartement(departement)"
+                  title="Modifier">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-outline-danger"
+                  (click)="deleteDepartement(departement.id!)"
+                  title="Supprimer">
+            <i class="bi bi-trash"></i>
+          </button>
+        </div>
+      </td>
+    </tr>
+  }
+</tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages > 1) {
+          <div class="d-flex justify-content-between align-items-center mt-3 p-3">
+            <div class="text-muted">
+              Affichage de {{ (currentPage * pageSize) + 1 }} à
+              {{ getMaxDisplayed() }}
+              sur {{ totalElements }} départements
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <!-- Sélecteur de taille de page -->
+              <select class="form-select form-select-sm"
+                      style="width: auto;"
+                      (change)="onPageSizeChange($event)">
+                @for (size of pageSizes; track size) {
+                  <option [value]="size" [selected]="size === pageSize">
+                    {{ size }} / page
+                  </option>
+                }
+              </select>
+
+              <!-- Contrôles de pagination -->
+              <nav>
+                <ul class="pagination pagination-sm mb-0">
+                  <!-- Première page -->
+                  <li class="page-item" [class.disabled]="currentPage === 0">
+                    <a class="page-link" href="javascript:void(0)"
+                       (click)="goToPage(0)" title="Première page">
+                      &laquo;
+                    </a>
+                  </li>
+
+                  <!-- Page précédente -->
+                  <li class="page-item" [class.disabled]="currentPage === 0">
+                    <a class="page-link" href="javascript:void(0)"
+                       (click)="goToPage(currentPage - 1)" title="Page précédente">
+                      &lsaquo;
+                    </a>
+                  </li>
+
+                  <!-- Pages -->
+                  @for (page of pages; track page) {
+                    <li class="page-item" [class.active]="page === currentPage">
+                      <a class="page-link" href="javascript:void(0)"
+                         (click)="goToPage(page)">
+                        {{ page + 1 }}
+                      </a>
+                    </li>
+                  }
+
+                  <!-- Page suivante -->
+                  <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+                    <a class="page-link" href="javascript:void(0)"
+                       (click)="goToPage(currentPage + 1)" title="Page suivante">
+                      &rsaquo;
+                    </a>
+                  </li>
+
+                  <!-- Dernière page -->
+                  <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+                    <a class="page-link" href="javascript:void(0)"
+                       (click)="goToPage(totalPages - 1)" title="Dernière page">
+                      &raquo;
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Modal de détail -->
+  @if (showDetailModal && selectedDepartementDetail) {
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5)" tabindex="-1">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">Détails du Département</h5>
+            <button type="button" class="btn-close btn-close-white" (click)="closeDetailModal()"></button>
+          </div>
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="fw-bold">Nom:</label>
+              <p class="text-muted">{{ selectedDepartementDetail.nomDepartement }}</p>
+            </div>
+
+            <div class="mb-3">
+              <label class="fw-bold">Taille Maximale:</label>
+              <p class="text-muted">{{ selectedDepartementDetail.tailleMax }} employés</p>
+            </div>
+
+            <div class="mb-3">
+              <label class="fw-bold">Taille Actuelle:</label>
+              <p class="text-muted">{{ selectedDepartementDetail.tailleActuelle || 0 }} employés</p>
+            </div>
+
+            <div class="mb-3">
+              <label class="fw-bold">Disponibilité:</label>
+              <p class="text-muted">
+                <span class="badge"
+                      [class.bg-success]="(selectedDepartementDetail.tailleActuelle || 0) < selectedDepartementDetail.tailleMax"
+                      [class.bg-warning]="(selectedDepartementDetail.tailleActuelle || 0) === selectedDepartementDetail.tailleMax"
+                      [class.bg-danger]="(selectedDepartementDetail.tailleActuelle || 0) > selectedDepartementDetail.tailleMax">
+                  {{ selectedDepartementDetail.tailleMax - (selectedDepartementDetail.tailleActuelle || 0) }} places disponibles
+                </span>
+              </p>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeDetailModal()">
+              Fermer
+            </button>
+            <button type="button" class="btn btn-primary"
+                    (click)="editDepartement(selectedDepartementDetail!); closeDetailModal()">
+              <i class="bi bi-pencil me-1"></i>Modifier
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

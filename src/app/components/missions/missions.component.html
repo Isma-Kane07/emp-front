@@ -1,0 +1,422 @@
+<div class="container-fluid">
+  <!-- En-tête avec filtre -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2 class="mb-0">Gestion des Missions</h2>
+    </div>
+    <div class="col-md-6">
+      <div class="d-flex gap-2 justify-content-end">
+        <div class="input-group" style="max-width: 400px;">
+  <select class="form-select" [(ngModel)]="selectedStatut">
+    <option value="">Tous les statuts</option>
+    @for (statut of statuts; track statut) {
+      <option [value]="statut">{{ getStatutText(statut) }}</option>
+    }
+  </select>
+  <button class="btn btn-outline-primary" type="button"
+          (click)="applyFilter()">
+    <i class="bi bi-funnel"></i> Filtrer
+  </button>
+  @if (selectedStatut) {
+    <button class="btn btn-outline-danger" type="button"
+            (click)="resetFilter()">
+      <i class="bi bi-x"></i>
+    </button>
+  }
+</div>
+
+        <button class="btn btn-primary" (click)="createMission()">
+          <i class="bi bi-plus-circle me-2"></i>Nouvelle Mission
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message de filtre actif -->
+  @if (isFiltering) {
+    <div class="alert alert-info alert-dismissible fade show mb-4">
+      <strong>Filtre actif :</strong> {{ getStatutText(selectedStatut) }}
+      - {{ totalElements }} mission(s) trouvée(s)
+      <button type="button" class="btn-close" (click)="resetFilter()"></button>
+    </div>
+  }
+
+  <!-- Message d'erreur -->
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+  }
+
+  <!-- Formulaire -->
+  @if (showForm) {
+  <div class="card mb-4">
+    <div class="card-header bg-primary text-white">
+      <h5 class="mb-0">{{ isEditing ? "Modifier" : "Créer" }} une Mission</h5>
+    </div>
+    <div class="card-body">
+      <form (ngSubmit)="onSubmit()" #missionForm="ngForm">
+        <div class="row g-3">
+          <div class="col-md-12">
+            <label class="form-label">Description *</label>
+            <textarea
+              class="form-control"
+              [(ngModel)]="selectedMission.description"
+              name="description"
+              required
+              rows="3"
+              placeholder="Description détaillée de la mission..."
+            ></textarea>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Lieu *</label>
+            <input
+              type="text"
+              class="form-control"
+              [(ngModel)]="selectedMission.lieu"
+              name="lieu"
+              required
+              placeholder="Lieu où se déroule la mission"
+            />
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Date de début *</label>
+            <input
+              type="date"
+              class="form-control"
+              [value]="formatDateForInput(selectedMission.dateDebut)"
+              (input)="selectedMission.dateDebut = $any($event.target).value"
+              name="dateDebut"
+              required
+            />
+          </div>
+
+          <div class="col-md-3">
+            <label class="form-label">Date de fin *</label>
+            <input
+              type="date"
+              class="form-control"
+              [value]="formatDateForInput(selectedMission.dateFin)"
+              (input)="selectedMission.dateFin = $any($event.target).value"
+              name="dateFin"
+              required
+            />
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Statut *</label>
+            <select
+              class="form-select"
+              [(ngModel)]="selectedMission.statut"
+              name="statut"
+              required
+            >
+              <option value="EN_ATTENTE">En attente</option>
+              <option value="EN_COURS">En cours</option>
+              <option value="TERMINEE">Terminée</option>
+              <option value="ANNULEE">Annulée</option>
+            </select>
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Assigner à un employé</label>
+            <select
+              class="form-select"
+              [(ngModel)]="selectedMission.employeId"
+              name="employeId"
+            >
+              <option [value]="undefined">Sélectionner un employé...</option>
+              @for (employe of employes; track employe.id) {
+              <option [value]="employe.id">
+                {{ employe.prenom }} {{ employe.nom }} - {{ employe.matricule }}
+              </option>
+              }
+            </select>
+          </div>
+
+          <div class="col-12">
+            <div class="d-flex gap-2">
+              <button
+                type="submit"
+                class="btn btn-success"
+                [disabled]="!missionForm.form.valid"
+              >
+                <i class="bi bi-check-circle me-1"></i>
+                {{ isEditing ? "Modifier" : "Créer" }}
+              </button>
+              <button
+                type="button"
+                class="btn btn-secondary"
+                (click)="resetForm()"
+              >
+                <i class="bi bi-x-circle me-1"></i>
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+  }
+
+  <!-- Tableau des missions -->
+  <div class="card">
+    <div class="card-header bg-light">
+      <h5 class="mb-0">Liste des Missions</h5>
+    </div>
+    <div class="card-body p-0">
+      @if (missions.length === 0) {
+      <div class="text-center text-muted py-5">
+        <i class="bi bi-briefcase display-4 d-block mb-3"></i>
+        Aucune mission trouvée
+      </div>
+      } @else {
+      <div class="table-responsive">
+        <table class="table table-striped table-hover mb-0">
+          <thead class="table-dark">
+            <tr>
+              <th>Description</th>
+              <th>Lieu</th>
+              <th>Début</th>
+              <th>Fin</th>
+              <th>Statut</th>
+              <th>Employé</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (mission of missions; track mission.id) {
+            <tr>
+              <td>
+                <div class="mission-description">
+                  {{ mission.description }}
+                </div>
+              </td>
+              <td class="align-middle">{{ mission.lieu }}</td>
+              <td class="align-middle">
+                {{ formatDateDisplay(mission.dateDebut) }}
+              </td>
+              <td class="align-middle">
+                {{ formatDateDisplay(mission.dateFin) }}
+              </td>
+              <td class="align-middle">
+                <span class="badge {{ getStatutBadgeClass(mission.statut) }}">
+                  {{ getStatutText(mission.statut) }}
+                </span>
+              </td>
+              <td class="align-middle">
+                <small>{{ getEmployeName(mission.employeId) }}</small>
+              </td>
+              <td class="align-middle">
+                <div class="btn-group btn-group-sm">
+                  <button
+                    class="btn btn-outline-info"
+                    (click)="viewMission(mission)"
+                    title="Voir détails"
+                  >
+                    <i class="bi bi-eye"></i>
+                  </button>
+                  <button
+                    class="btn btn-outline-primary"
+                    (click)="editMission(mission)"
+                    title="Modifier"
+                  >
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button
+                    class="btn btn-outline-danger"
+                    (click)="deleteMission(mission.id!)"
+                    title="Supprimer"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages > 1) {
+      <div class="d-flex justify-content-between align-items-center mt-3 p-3">
+        <div class="text-muted">
+          Affichage de {{ currentPage * pageSize + 1 }} à
+          {{ getMaxDisplayed() }}
+          sur {{ totalElements }} missions
+        </div>
+
+        <div class="d-flex align-items-center gap-2">
+          <!-- Sélecteur de taille de page -->
+          <select
+            class="form-select form-select-sm"
+            style="width: auto"
+            (change)="onPageSizeChange($event)"
+          >
+            @for (size of pageSizes; track size) {
+            <option [value]="size" [selected]="size === pageSize">
+              {{ size }} / page
+            </option>
+            }
+          </select>
+
+          <!-- Contrôles de pagination -->
+          <nav>
+            <ul class="pagination pagination-sm mb-0">
+              <li class="page-item" [class.disabled]="currentPage === 0">
+                <a
+                  class="page-link"
+                  href="javascript:void(0)"
+                  (click)="goToPage(0)"
+                >
+                  &laquo;
+                </a>
+              </li>
+              <li class="page-item" [class.disabled]="currentPage === 0">
+                <a
+                  class="page-link"
+                  href="javascript:void(0)"
+                  (click)="goToPage(currentPage - 1)"
+                >
+                  &lsaquo;
+                </a>
+              </li>
+              @for (page of pages; track page) {
+              <li class="page-item" [class.active]="page === currentPage">
+                <a
+                  class="page-link"
+                  href="javascript:void(0)"
+                  (click)="goToPage(page)"
+                >
+                  {{ page + 1 }}
+                </a>
+              </li>
+              }
+              <li
+                class="page-item"
+                [class.disabled]="currentPage === totalPages - 1"
+              >
+                <a
+                  class="page-link"
+                  href="javascript:void(0)"
+                  (click)="goToPage(currentPage + 1)"
+                >
+                  &rsaquo;
+                </a>
+              </li>
+              <li
+                class="page-item"
+                [class.disabled]="currentPage === totalPages - 1"
+              >
+                <a
+                  class="page-link"
+                  href="javascript:void(0)"
+                  (click)="goToPage(totalPages - 1)"
+                >
+                  &raquo;
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+      } }
+    </div>
+  </div>
+
+  <!-- Modal de détail -->
+  @if (showDetailModal && selectedMissionDetail) {
+  <div
+    class="modal fade show"
+    style="display: block; background-color: rgba(0, 0, 0, 0.5)"
+    tabindex="-1"
+  >
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header bg-primary text-white">
+          <h5 class="modal-title">Détails de la Mission</h5>
+          <button
+            type="button"
+            class="btn-close btn-close-white"
+            (click)="closeDetailModal()"
+          ></button>
+        </div>
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="fw-bold">Description:</label>
+                <p class="text-muted">
+                  {{ selectedMissionDetail.description }}
+                </p>
+              </div>
+
+              <div class="mb-3">
+                <label class="fw-bold">Lieu:</label>
+                <p class="text-muted">{{ selectedMissionDetail.lieu }}</p>
+              </div>
+
+              <div class="mb-3">
+                <label class="fw-bold">Statut:</label>
+                <p class="text-muted">
+                  <span
+                    class="badge {{
+                      getStatutBadgeClass(selectedMissionDetail.statut)
+                    }}"
+                  >
+                    {{ getStatutText(selectedMissionDetail.statut) }}
+                  </span>
+                </p>
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <div class="mb-3">
+                <label class="fw-bold">Date de début:</label>
+                <p class="text-muted">
+                  {{ formatDateDisplay(selectedMissionDetail.dateDebut) }}
+                </p>
+              </div>
+
+              <div class="mb-3">
+                <label class="fw-bold">Date de fin:</label>
+                <p class="text-muted">
+                  {{ formatDateDisplay(selectedMissionDetail.dateFin) }}
+                </p>
+              </div>
+
+              <div class="mb-3">
+                <label class="fw-bold">Assignée à:</label>
+                <p class="text-muted">
+                  {{ getEmployeName(selectedMissionDetail.employeId) }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            (click)="closeDetailModal()"
+          >
+            <i class="bi bi-x-circle me-1"></i>Fermer
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="editMission(selectedMissionDetail!); closeDetailModal()"
+          >
+            <i class="bi bi-pencil me-1"></i>Modifier
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  }
+</div>

@@ -1,0 +1,112 @@
+@if (authService.isLoggedIn()) {
+<div class="d-flex min-vh-100">
+  <!-- Sidebar -->
+  <div class="bg-dark text-white" style="width: 280px;">
+    <div class="p-4 border-bottom border-secondary">
+      <a class="navbar-brand text-white fw-bold fs-4" routerLink="/dashboard">GesEmp</a>
+    </div>
+
+    <nav class="p-3 flex-grow-1">
+      <div class="nav flex-column">
+        <!-- Dashboard -->
+        <a class="nav-link text-white-50 d-flex align-items-center py-3 px-3 rounded mb-2 hover-bg-primary"
+           routerLink="/dashboard"
+           routerLinkActive="active-link">
+          <i class="bi bi-speedometer2 me-3"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <!-- Employés -->
+        <a class="nav-link text-white-50 d-flex align-items-center py-3 px-3 rounded mb-2 hover-bg-primary"
+           routerLink="/employes"
+           routerLinkActive="active-link">
+          <i class="bi bi-people me-3"></i>
+          <span>Employés</span>
+        </a>
+
+        <!-- Départements -->
+        <a class="nav-link text-white-50 d-flex align-items-center py-3 px-3 rounded mb-2 hover-bg-primary"
+           routerLink="/departements"
+           routerLinkActive="active-link">
+          <i class="bi bi-building me-3"></i>
+          <span>Départements</span>
+        </a>
+
+        <!-- Grades -->
+        <a class="nav-link text-white-50 d-flex align-items-center py-3 px-3 rounded mb-2 hover-bg-primary"
+           routerLink="/grades"
+           routerLinkActive="active-link">
+          <i class="bi bi-award me-3"></i>
+          <span>Grades</span>
+        </a>
+
+        <!-- Missions -->
+        <a class="nav-link text-white-50 d-flex align-items-center py-3 px-3 rounded mb-2 hover-bg-primary"
+           routerLink="/missions"
+           routerLinkActive="active-link">
+          <i class="bi bi-briefcase me-3"></i>
+          <span>Missions</span>
+        </a>
+
+        <!-- Paramètres -->
+        <a class="nav-link text-white-50 d-flex align-items-center py-3 px-3 rounded mb-2 hover-bg-primary"
+           routerLink="/parametres"
+           routerLinkActive="active-link">
+          <i class="bi bi-gear me-3"></i>
+          <span>Paramètres</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- Déconnexion -->
+    <div class="p-3 border-top border-secondary">
+      <a class="nav-link text-white-50 d-flex align-items-center py-3 px-3 rounded hover-bg-danger"
+         href="#"
+         (click)="logout(); $event.preventDefault()">
+        <i class="bi bi-box-arrow-right me-3"></i>
+        <span>Déconnexion</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Main content -->
+  <div class="flex-grow-1 bg-light">
+    <div class="container-fluid p-4">
+      <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>
+} @else {
+<div class="min-vh-100">
+  <router-outlet></router-outlet>
+</div>
+}
+
+<style>
+.hover-bg-primary:hover {
+  background-color: rgba(13, 110, 253, 0.2) !important;
+  color: white !important;
+}
+
+.hover-bg-danger:hover {
+  background-color: rgba(220, 53, 69, 0.2) !important;
+  color: white !important;
+}
+
+.active-link {
+  background-color: #0d6efd !important;
+  color: white !important;
+}
+
+.nav-link {
+  transition: all 0.3s ease;
+}
+
+.nav-link:hover {
+  transform: translateX(5px);
+}
+
+.bi {
+  font-size: 1.1rem;
+}
+</style>

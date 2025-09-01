@@ -1,0 +1,340 @@
+<div class="container-fluid">
+  <!-- En-tête avec recherche -->
+  <div class="row mb-4">
+    <div class="col-md-6">
+      <h2 class="mb-0">Gestion des Employés</h2>
+    </div>
+    <div class="col-md-6">
+      <div class="d-flex gap-2 justify-content-end">
+        <!-- Barre de recherche -->
+        <div class="input-group" style="max-width: 400px;">
+          <input type="text" class="form-control"
+                 [ngModel]="searchTerm"
+                 (input)="onSearchInput($event)"
+                 placeholder="Rechercher par nom, prénom ou matricule...">
+          <button class="btn btn-outline-secondary" type="button"
+                  (click)="performSearch(searchTerm)">
+            <i class="bi bi-search"></i>
+          </button>
+          @if (searchTerm) {
+            <button class="btn btn-outline-danger" type="button"
+                    (click)="resetSearch()">
+              <i class="bi bi-x"></i>
+            </button>
+          }
+        </div>
+
+        <button class="btn btn-primary" (click)="createEmploye()">
+          <i class="bi bi-plus-circle me-2"></i>Nouvel Employé
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Message d'info recherche -->
+  @if (isSearching) {
+    <div class="alert alert-info alert-dismissible fade show mb-4">
+      <strong>Résultats de recherche pour "{{ searchTerm }}"</strong>
+      - {{ filteredEmployes.length }} employé(s) trouvé(s)
+      <button type="button" class="btn-close" (click)="resetSearch()"></button>
+    </div>
+  }
+
+  <!-- Message d'erreur -->
+  @if (errorMessage) {
+    <div class="alert alert-danger alert-dismissible fade show mb-4">
+      {{ errorMessage }}
+      <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+    </div>
+  }
+
+  <!-- Formulaire -->
+  @if (showForm) {
+    <div class="card mb-4">
+      <div class="card-header bg-primary text-white">
+        <h5 class="mb-0">{{ isEditing ? 'Modifier' : 'Créer' }} un Employé</h5>
+      </div>
+      <div class="card-body">
+        <form (ngSubmit)="onSubmit()" #employeForm="ngForm">
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label class="form-label">Nom *</label>
+                <input type="text" class="form-control"
+                       [(ngModel)]="selectedEmploye.nom"
+                       name="nom" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label class="form-label">Prénom *</label>
+                <input type="text" class="form-control"
+                       [(ngModel)]="selectedEmploye.prenom"
+                       name="prenom" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label class="form-label">Téléphone *</label>
+                <input type="tel" class="form-control"
+                       [(ngModel)]="selectedEmploye.tel"
+                       name="tel" required>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label class="form-label">Email *</label>
+                <input type="email" class="form-control"
+                       [(ngModel)]="selectedEmploye.mail"
+                       name="mail" required>
+              </div>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label class="form-label">Département</label>
+                <select class="form-select"
+                        [(ngModel)]="selectedEmploye.departementId"
+                        name="departementId">
+                  <option [value]="undefined">Sélectionner un département</option>
+                  @for (dept of departements; track dept.id) {
+                    <option [value]="dept.id">{{ dept.nomDepartement }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="form-group mb-3">
+                <label class="form-label">Grade</label>
+                <select class="form-select"
+                        [(ngModel)]="selectedEmploye.gradeId"
+                        name="gradeId">
+                  <option [value]="undefined">Sélectionner un grade</option>
+                  @for (grade of grades; track grade.id) {
+                    <option [value]="grade.id">{{ grade.libelle }}</option>
+                  }
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success"
+                    [disabled]="!employeForm.form.valid">
+              {{ isEditing ? 'Modifier' : 'Créer' }}
+            </button>
+            <button type="button" class="btn btn-secondary"
+                    (click)="resetForm()">
+              Annuler
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  }
+
+  <!-- Tableau des employés -->
+  <div class="card">
+    <div class="card-header bg-light">
+      <h5 class="mb-0">Liste des Employés</h5>
+    </div>
+    <div class="card-body p-0">
+      @if (getDisplayedEmployes().length === 0) {
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-people display-4 d-block mb-3"></i>
+          {{ isSearching ? 'Aucun employé trouvé' : 'Aucun employé' }}
+        </div>
+      } @else {
+        <div class="table-responsive">
+          <table class="table table-striped table-hover mb-0">
+            <thead class="table-dark">
+              <tr>
+                <th>Matricule</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Email</th>
+                <th>Téléphone</th>
+                <th>Département</th>
+                <th>Grade</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (employe of getDisplayedEmployes(); track employe.id) {
+                <tr>
+                  <td class="fw-bold">{{ employe.matricule || 'N/A' }}</td>
+                  <td>{{ employe.nom }}</td>
+                  <td>{{ employe.prenom }}</td>
+                  <td>{{ employe.mail }}</td>
+                  <td>{{ employe.tel }}</td>
+                  <td>{{ getDepartementName(employe.departementId) }}</td>
+                  <td>{{ getGradeName(employe.gradeId) }}</td>
+                  <td>
+                    <div class="btn-group btn-group-sm">
+                      <button class="btn btn-outline-info"
+                              (click)="viewEmploye(employe)"
+                              title="Voir détails">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn btn-outline-primary"
+                              (click)="editEmploye(employe)"
+                              title="Modifier">
+                        <i class="bi bi-pencil"></i>
+                      </button>
+                      <button class="btn btn-outline-danger"
+                              (click)="deleteEmploye(employe.id!)"
+                              title="Supprimer">
+                        <i class="bi bi-trash"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages > 1) {
+          <div class="d-flex justify-content-between align-items-center mt-3 p-3">
+            <div class="text-muted">
+              Affichage de {{ (currentPage * pageSize) + 1 }} à
+              {{ getMaxDisplayed() }}
+              sur {{ isSearching ? filteredEmployes.length : totalElements }} employés
+            </div>
+
+            <div class="d-flex align-items-center gap-2">
+              <!-- Sélecteur de taille de page -->
+              <select class="form-select form-select-sm"
+                      style="width: auto;"
+                      (change)="onPageSizeChange($event)">
+                @for (size of pageSizes; track size) {
+                  <option [value]="size" [selected]="size === pageSize">
+                    {{ size }} / page
+                  </option>
+                }
+              </select>
+
+              <!-- Contrôles de pagination -->
+              <nav>
+                <ul class="pagination pagination-sm mb-0">
+                  <!-- Première page -->
+                  <li class="page-item" [class.disabled]="currentPage === 0">
+                    <a class="page-link" href="javascript:void(0)"
+                       (click)="goToPage(0)" title="Première page">
+                      &laquo;
+                    </a>
+                  </li>
+
+                  <!-- Page précédente -->
+                  <li class="page-item" [class.disabled]="currentPage === 0">
+                    <a class="page-link" href="javascript:void(0)"
+                       (click)="goToPage(currentPage - 1)" title="Page précédente">
+                      &lsaquo;
+                    </a>
+                  </li>
+
+                  <!-- Pages -->
+                  @for (page of pages; track page) {
+                    <li class="page-item" [class.active]="page === currentPage">
+                      <a class="page-link" href="javascript:void(0)"
+                         (click)="goToPage(page)">
+                        {{ page + 1 }}
+                      </a>
+                    </li>
+                  }
+
+                  <!-- Page suivante -->
+                  <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+                    <a class="page-link" href="javascript:void(0)"
+                       (click)="goToPage(currentPage + 1)" title="Page suivante">
+                      &rsaquo;
+                    </a>
+                  </li>
+
+                  <!-- Dernière page -->
+                  <li class="page-item" [class.disabled]="currentPage === totalPages - 1">
+                    <a class="page-link" href="javascript:void(0)"
+                       (click)="goToPage(totalPages - 1)" title="Dernière page">
+                      &raquo;
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Modal de détail -->
+  @if (showDetailModal && selectedEmployeDetail) {
+    <div class="modal fade show" style="display: block; background-color: rgba(0,0,0,0.5)" tabindex="-1">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title">Détails de l'Employé</h5>
+            <button type="button" class="btn-close btn-close-white" (click)="closeDetailModal()"></button>
+          </div>
+          <div class="modal-body">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="fw-bold">Matricule:</label>
+                  <p class="text-muted">{{ selectedEmployeDetail.matricule || 'Non attribué' }}</p>
+                </div>
+
+                <div class="mb-3">
+                  <label class="fw-bold">Nom:</label>
+                  <p class="text-muted">{{ selectedEmployeDetail.nom }}</p>
+                </div>
+
+                <div class="mb-3">
+                  <label class="fw-bold">Prénom:</label>
+                  <p class="text-muted">{{ selectedEmployeDetail.prenom }}</p>
+                </div>
+
+                <div class="mb-3">
+                  <label class="fw-bold">Email:</label>
+                  <p class="text-muted">{{ selectedEmployeDetail.mail }}</p>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <div class="mb-3">
+                  <label class="fw-bold">Téléphone:</label>
+                  <p class="text-muted">{{ selectedEmployeDetail.tel }}</p>
+                </div>
+
+                <div class="mb-3">
+                  <label class="fw-bold">Département:</label>
+                  <p class="text-muted">{{ getDepartementName(selectedEmployeDetail.departementId) }}</p>
+                </div>
+
+                <div class="mb-3">
+                  <label class="fw-bold">Grade:</label>
+                  <p class="text-muted">{{ getGradeName(selectedEmployeDetail.gradeId) }}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="closeDetailModal()">
+              Fermer
+            </button>
+            <button type="button" class="btn btn-primary"
+                    (click)="editEmploye(selectedEmployeDetail!); closeDetailModal()">
+              <i class="bi bi-pencil me-1"></i>Modifier
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>
