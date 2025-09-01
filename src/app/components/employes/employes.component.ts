@@ -5,6 +5,8 @@ import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs'
 import { EmployeService, EmployeDto, PageResponse } from '../../services/employe.service';
 import { DepartementService, DepartementDto } from '../../services/departement.service';
 import { GradeService, GradeDto } from '../../services/grade.service';
+import { AuthService } from '../../services/auth.service';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-employes',
@@ -41,10 +43,15 @@ export class EmployesComponent implements OnInit, OnDestroy {
   constructor(
     private employeService: EmployeService,
     private departementService: DepartementService,
-    private gradeService: GradeService
+    private gradeService: GradeService,
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
+    console.log('🔍 Composant Employés initialisé');
+    this.authService.debugToken();
+
     this.loadEmployesPaginated();
     this.loadDepartements();
     this.loadGrades();
@@ -64,6 +71,7 @@ export class EmployesComponent implements OnInit, OnDestroy {
 
   // Chargement paginé
   loadEmployesPaginated(): void {
+    console.log('📦 Chargement employés paginés');
     this.employeService.getAllEmployesPaginated(this.currentPage, this.pageSize).subscribe({
       next: (page: PageResponse<EmployeDto>) => {
         this.employes = page.content;
@@ -71,9 +79,10 @@ export class EmployesComponent implements OnInit, OnDestroy {
         this.totalElements = page.totalElements;
         this.totalPages = page.totalPages;
         this.isSearching = false;
+        console.log('✅ Employés chargés:', this.employes.length);
       },
       error: (error) => {
-        console.error('Erreur chargement employés:', error);
+        console.error('❌ Erreur chargement employés:', error);
         this.errorMessage = 'Erreur lors du chargement des employés';
       }
     });
@@ -100,7 +109,19 @@ export class EmployesComponent implements OnInit, OnDestroy {
     this.searchSubject.next(event.target.value);
   }
 
+  // Recherche d'employés
   performSearch(searchTerm: string): void {
+    console.log('🔍 Lancement recherche:', searchTerm);
+
+    // Vérifier d'abord si le token est valide
+    if (!this.authService.isTokenValid()) {
+      console.log('❌ Token invalide avant recherche');
+      this.errorMessage = 'Session expirée. Veuillez vous reconnecter.';
+      this.authService.logout();
+      this.router.navigate(['/login']);
+      return;
+    }
+
     this.searchTerm = searchTerm;
 
     if (!this.searchTerm.trim()) {
@@ -109,16 +130,34 @@ export class EmployesComponent implements OnInit, OnDestroy {
     }
 
     this.isSearching = true;
+    this.errorMessage = '';
+
     this.employeService.searchEmployes(this.searchTerm).subscribe({
       next: (employes) => {
+        console.log('✅ Recherche réussie:', employes.length + ' résultats');
         this.filteredEmployes = employes;
         this.totalElements = employes.length;
         this.totalPages = Math.ceil(employes.length / this.pageSize);
         this.currentPage = 0;
+        this.isSearching = false;
       },
       error: (error) => {
-        console.error('Erreur recherche employés:', error);
-        this.errorMessage = 'Erreur lors de la recherche';
+        console.error('❌ Erreur recherche employés:', error);
+
+        if (error.status === 401) {
+          console.log('🔐 Erreur 401 pendant la recherche');
+          this.errorMessage = 'Session expirée lors de la recherche';
+
+          setTimeout(() => {
+            this.authService.logout();
+            this.router.navigate(['/login'], {
+              queryParams: { message: 'Session expirée' }
+            });
+          }, 2000);
+        } else {
+          this.errorMessage = 'Erreur lors de la recherche: ' + (error.message || 'Erreur serveur');
+          this.resetSearch();
+        }
         this.isSearching = false;
       }
     });
@@ -126,6 +165,7 @@ export class EmployesComponent implements OnInit, OnDestroy {
 
   // Réinitialiser la recherche
   resetSearch(): void {
+    console.log('🔄 Réinitialisation recherche');
     this.searchTerm = '';
     this.isSearching = false;
     this.loadEmployesPaginated();
@@ -136,7 +176,6 @@ export class EmployesComponent implements OnInit, OnDestroy {
     if (page >= 0 && page < this.totalPages) {
       this.currentPage = page;
       if (this.isSearching) {
-        // Pour la recherche, on utilise filteredEmployes
         this.updatePagination();
       } else {
         this.loadEmployesPaginated();
@@ -276,5 +315,17 @@ export class EmployesComponent implements OnInit, OnDestroy {
       pages.push(i);
     }
     return pages;
+  }
+
+
+  // Méthode de diagnostic
+  testConnexion(): void {
+    console.log('🔍 Test de connexion...');
+    this.authService.debugToken();
+
+    this.employeService.getAllEmployes().subscribe({
+      next: (emps) => console.log('✅ Test connexion OK:', emps.length + ' employés'),
+      error: (error) => console.error('❌ Test connexion échoué:', error)
+    });
   }
 }

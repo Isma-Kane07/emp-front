@@ -144,7 +144,7 @@
       <h5 class="mb-0">Liste des Employés</h5>
     </div>
     <div class="card-body p-0">
-      @if (getDisplayedEmployes().length === 0) {
+      @if (filteredEmployes.length === 0) {
         <div class="text-center text-muted py-5">
           <i class="bi bi-people display-4 d-block mb-3"></i>
           {{ isSearching ? 'Aucun employé trouvé' : 'Aucun employé' }}
@@ -165,7 +165,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (employe of getDisplayedEmployes(); track employe.id) {
+              @for (employe of filteredEmployes; track employe.id) {
                 <tr>
                   <td class="fw-bold">{{ employe.matricule || 'N/A' }}</td>
                   <td>{{ employe.nom }}</td>
@@ -199,13 +199,13 @@
           </table>
         </div>
 
-        <!-- Pagination -->
-        @if (totalPages > 1) {
+        <!-- Pagination - seulement si pas en recherche -->
+        @if (!isSearching && totalPages > 1) {
           <div class="d-flex justify-content-between align-items-center mt-3 p-3">
             <div class="text-muted">
               Affichage de {{ (currentPage * pageSize) + 1 }} à
               {{ getMaxDisplayed() }}
-              sur {{ isSearching ? filteredEmployes.length : totalElements }} employés
+              sur {{ totalElements }} employés
             </div>
 
             <div class="d-flex align-items-center gap-2">
@@ -266,6 +266,15 @@
                   </li>
                 </ul>
               </nav>
+            </div>
+          </div>
+        }
+
+        <!-- Message pour la recherche -->
+        @if (isSearching) {
+          <div class="d-flex justify-content-between align-items-center mt-3 p-3">
+            <div class="text-muted">
+              Affichage de tous les {{ filteredEmployes.length }} résultats de recherche
             </div>
           </div>
         }

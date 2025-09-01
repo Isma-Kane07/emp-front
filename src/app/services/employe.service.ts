@@ -95,8 +95,11 @@ getAllGradesPaginated(page: number = 0, size: number = 10): Observable<PageRespo
   );
 }
 
+// employe.service.ts
 searchEmployes(searchTerm: string): Observable<EmployeDto[]> {
-  return this.http.get<EmployeDto[]>(`${this.apiUrl}/search?q=${encodeURIComponent(searchTerm)}`);
+  return this.http.get<EmployeDto[]>(
+    `${this.apiUrl}/employes/search?q=${encodeURIComponent(searchTerm)}`
+  );
 }
 
 }

@@ -1,66 +1,408 @@
+<div class="container-fluid">
+  <!-- En-tête -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="d-flex justify-content-between align-items-center">
+        <h1 class="h2 mb-0">Tableau de Bord</h1>
+        <button class="btn btn-outline-secondary" (click)="loadStats()">
+          <i class="bi bi-arrow-clockwise"></i> Actualiser
+        </button>
+      </div>
+      <p class="text-muted">Vue d'ensemble de votre gestion des ressources</p>
+    </div>
+  </div>
+
+  <!-- Indicateur de chargement -->
+  @if (isLoading) {
+    <div class="text-center py-5">
+      <div class="spinner-border text-primary" role="status">
+        <span class="visually-hidden">Chargement...</span>
+      </div>
+      <p class="mt-2 text-muted">Chargement des données...</p>
+    </div>
+  } @else {
+    <!-- Cartes de statistiques -->
+    <div class="row">
+      <!-- Employés -->
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-5 border-primary shadow h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-grow-1">
+                <h6 class="text-uppercase text-muted mb-0">Employés</h6>
+                <h2 class="fw-bold text-primary mb-0">{{ stats.totalEmployes }}</h2>
+                <p class="small text-muted mb-0">
+                  <span class="text-danger">{{ stats.employesSansMission }}</span> sans mission
+                </p>
+              </div>
+              <div class="ms-3">
+                <i class="bi bi-people fs-1 text-primary opacity-25"></i>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer bg-transparent">
+            <a routerLink="/employes" class="text-decoration-none small">
+              Voir détails <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Départements -->
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-5 border-success shadow h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-grow-1">
+                <h6 class="text-uppercase text-muted mb-0">Départements</h6>
+                <h2 class="fw-bold text-success mb-0">{{ stats.totalDepartements }}</h2>
+                <p class="small text-muted mb-0">
+                  <span class="text-success">{{ getDepartmentUtilization() }}%</span> utilisation
+                </p>
+              </div>
+              <div class="ms-3">
+                <i class="bi bi-building fs-1 text-success opacity-25"></i>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer bg-transparent">
+            <a routerLink="/departements" class="text-decoration-none small">
+              Voir détails <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Missions -->
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-5 border-info shadow h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-grow-1">
+                <h6 class="text-uppercase text-muted mb-0">Missions</h6>
+                <h2 class="fw-bold text-info mb-0">{{ stats.totalMissions }}</h2>
+                <p class="small text-muted mb-0">
+                  <span class="text-success">{{ getMissionProgress() }}%</span> complétées
+                </p>
+              </div>
+              <div class="ms-3">
+                <i class="bi bi-briefcase fs-1 text-info opacity-25"></i>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer bg-transparent">
+            <a routerLink="/missions" class="text-decoration-none small">
+              Voir détails <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- En Cours -->
+      <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-start border-5 border-warning shadow h-100">
+          <div class="card-body">
+            <div class="d-flex align-items-center">
+              <div class="flex-grow-1">
+                <h6 class="text-uppercase text-muted mb-0">En Cours</h6>
+                <h2 class="fw-bold text-warning mb-0">{{ stats.missionsEnCours }}</h2>
+                <div class="progress mt-2" style="height: 5px;">
+                  <div class="progress-bar bg-warning"
+                       [style.width]="(stats.missionsEnCours / stats.totalMissions * 100) + '%'">
+                  </div>
+                </div>
+              </div>
+              <div class="ms-3">
+                <i class="bi bi-clock fs-1 text-warning opacity-25"></i>
+              </div>
+            </div>
+          </div>
+          <div class="card-footer bg-transparent">
+            <a routerLink="/missions?statut=EN_COURS" class="text-decoration-none small">
+              Voir détails <i class="bi bi-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Deuxième ligne : Graphiques, actions et calendrier -->
 <div class="row">
-  <div class="col-md-3 mb-4">
-    <div class="card bg-primary text-white text-center">
-      <div class="card-body">
-        <h5 class="card-title">Employés</h5>
-        <h2 class="display-4">{{ stats.totalEmployes }}</h2>
+  <!-- Actions Rapides - Version améliorée -->
+  <div class="col-xl-3 col-lg-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header bg-white border-0 pb-0">
+        <h5 class="mb-3">Accès Rapide</h5>
       </div>
-    </div>
-  </div>
+      <div class="card-body">
+        <div class="row g-3">
+          <!-- Employés -->
+          <div class="col-6">
+            <a routerLink="/employes" class="card card-hover text-center text-decoration-none">
+              <div class="card-body py-3">
+                <i class="bi bi-people fs-2 text-primary mb-2 d-block"></i>
+                <span class="small fw-semibold">Employés</span>
+              </div>
+            </a>
+          </div>
 
-  <div class="col-md-3 mb-4">
-    <div class="card bg-success text-white text-center">
-      <div class="card-body">
-        <h5 class="card-title">Départements</h5>
-        <h2 class="display-4">{{ stats.totalDepartements }}</h2>
-      </div>
-    </div>
-  </div>
+          <!-- Missions -->
+          <div class="col-6">
+            <a routerLink="/missions" class="card card-hover text-center text-decoration-none">
+              <div class="card-body py-3">
+                <i class="bi bi-briefcase fs-2 text-success mb-2 d-block"></i>
+                <span class="small fw-semibold">Missions</span>
+              </div>
+            </a>
+          </div>
 
-  <div class="col-md-3 mb-4">
-    <div class="card bg-info text-white text-center">
-      <div class="card-body">
-        <h5 class="card-title">Missions</h5>
-        <h2 class="display-4">{{ stats.totalMissions }}</h2>
-      </div>
-    </div>
-  </div>
+          <!-- Départements -->
+          <div class="col-6">
+            <a routerLink="/departements" class="card card-hover text-center text-decoration-none">
+              <div class="card-body py-3">
+                <i class="bi bi-building fs-2 text-info mb-2 d-block"></i>
+                <span class="small fw-semibold">Départements</span>
+              </div>
+            </a>
+          </div>
 
-  <div class="col-md-3 mb-4">
-    <div class="card bg-warning text-white text-center">
-      <div class="card-body">
-        <h5 class="card-title">En Cours</h5>
-        <h2 class="display-4">{{ stats.missionsEnCours }}</h2>
-      </div>
-    </div>
-  </div>
-</div>
+          <!-- Grades -->
+          <div class="col-6">
+            <a routerLink="/grades" class="card card-hover text-center text-decoration-none">
+              <div class="card-body py-3">
+                <i class="bi bi-award fs-2 text-warning mb-2 d-block"></i>
+                <span class="small fw-semibold">Grades</span>
+              </div>
+            </a>
+          </div>
+        </div>
 
-<div class="row">
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header">
-        <h5>Actions Rapides</h5>
-      </div>
-      <div class="card-body">
+        <hr class="my-4">
+
+        <!-- Actions de création -->
         <div class="d-grid gap-2">
-          <a routerLink="/employes/create" class="btn btn-primary">Nouvel Employé</a>
-          <a routerLink="/missions/create" class="btn btn-success">Nouvelle Mission</a>
-          <a routerLink="/departements" class="btn btn-info">Gérer Départements</a>
-          <a routerLink="/grades" class="btn btn-warning">Gérer Grades</a>
+          <a routerLink="/employes/create" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-person-plus me-1"></i>Nouvel Employé
+          </a>
+          <a routerLink="/missions/create" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-plus-circle me-1"></i>Nouvelle Mission
+          </a>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="col-md-6">
-    <div class="card">
-      <div class="card-header">
-        <h5>Dernières Activités</h5>
+  <!-- Statistiques Missions -->
+  <div class="col-xl-3 col-lg-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header bg-white border-0">
+        <h5 class="mb-0">Statut des Missions</h5>
       </div>
       <div class="card-body">
-        <p class="text-muted">Aucune activité récente</p>
+        <!-- Graphique circulaire simplifié -->
+        <div class="d-flex justify-content-center mb-4">
+          <div class="position-relative" style="width: 120px; height: 120px;">
+            <div class="position-absolute top-0 start-0 w-100 h-100">
+              <svg width="120" height="120" viewBox="0 0 120 120">
+                <!-- Fond -->
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#e9ecef" stroke-width="12" />
+                <!-- Terminées -->
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#198754" stroke-width="12"
+                        [attr.stroke-dasharray]="'339.3 ' + (339.3 - (stats.missionsTerminees / stats.totalMissions * 339.3))"
+                        stroke-dashoffset="84.8" transform="rotate(-90 60 60)" />
+                <!-- En Cours -->
+                <circle cx="60" cy="60" r="54" fill="none" stroke="#ffc107" stroke-width="12"
+                        [attr.stroke-dasharray]="'339.3 ' + (339.3 - (stats.missionsEnCours / stats.totalMissions * 339.3))"
+                        [attr.stroke-dashoffset]="84.8 - (stats.missionsTerminees / stats.totalMissions * 339.3)"
+                        transform="rotate(-90 60 60)" />
+              </svg>
+            </div>
+            <div class="position-absolute top-50 start-50 translate-middle text-center">
+              <span class="fw-bold fs-4">{{ getMissionProgress() }}%</span>
+              <br>
+              <span class="small text-muted">Complété</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-3">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center">
+              <span class="badge bg-success me-2">●</span>
+              <span class="small">Terminées</span>
+            </div>
+            <span class="fw-semibold">{{ stats.missionsTerminees }}</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <div class="d-flex align-items-center">
+              <span class="badge bg-warning me-2">●</span>
+              <span class="small">En Cours</span>
+            </div>
+            <span class="fw-semibold">{{ stats.missionsEnCours }}</span>
+          </div>
+          <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+              <span class="badge bg-secondary me-2">●</span>
+              <span class="small">En Attente</span>
+            </div>
+            <span class="fw-semibold">{{ stats.missionsEnAttente }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
+
+  <!-- Calendrier -->
+  <div class="col-xl-3 col-lg-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Calendrier</h5>
+        <div class="btn-group">
+          <button class="btn btn-outline-secondary btn-sm" title="Mois précédent">
+            <i class="bi bi-chevron-left"></i>
+          </button>
+          <button class="btn btn-outline-secondary btn-sm" title="Mois suivant">
+            <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-3">
+        <!-- En-tête du calendrier -->
+        <div class="text-center mb-3">
+          <span class="fw-semibold">Septembre 2024</span>
+        </div>
+
+        <!-- Jours de la semaine -->
+        <div class="row text-center small text-muted mb-2">
+          <div class="col p-1"><small>Lun</small></div>
+          <div class="col p-1"><small>Mar</small></div>
+          <div class="col p-1"><small>Mer</small></div>
+          <div class="col p-1"><small>Jeu</small></div>
+          <div class="col p-1"><small>Ven</small></div>
+          <div class="col p-1"><small>Sam</small></div>
+          <div class="col p-1"><small>Dim</small></div>
+        </div>
+
+        <!-- Jours du mois -->
+        <div class="row g-1">
+          @for (day of [].constructor(35); track $index) {
+            <div class="col-12 p-0">
+              <div class="row g-1">
+                @for (day of [1,2,3,4,5,6,7]; track $index) {
+                  <div class="col p-1">
+                    <div class="calendar-day text-center p-2 rounded">
+                      @if (day === 15) {
+                        <span class="badge bg-primary rounded-pill">{{ day }}</span>
+                      } @else if (day === 20) {
+                        <span class="badge bg-success rounded-pill">{{ day }}</span>
+                      } @else {
+                        <span class="small">{{ day }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Événements du jour -->
+        <div class="mt-4">
+          <h6 class="small fw-semibold mb-3">Aujourd'hui</h6>
+          <div class="d-flex align-items-center mb-2">
+            <span class="badge bg-primary me-2">●</span>
+            <div class="flex-grow-1">
+              <small class="d-block">Réunion d'équipe</small>
+              <small class="text-muted">10:00 - 11:30</small>
+            </div>
+          </div>
+          <div class="d-flex align-items-center">
+            <span class="badge bg-success me-2">●</span>
+            <div class="flex-grow-1">
+              <small class="d-block">Deadline projet</small>
+              <small class="text-muted">17:00</small>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card-footer bg-transparent text-center py-2">
+        <a href="#" class="text-decoration-none small">
+          <i class="bi bi-plus-circle me-1"></i>Ajouter un événement
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Activités Récentes -->
+  <div class="col-xl-3 col-lg-6 mb-4">
+    <div class="card shadow h-100">
+      <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">Activités Récentes</h5>
+        <span class="badge bg-primary">{{ recentActivities.length }}</span>
+      </div>
+      <div class="card-body p-0">
+        <div class="list-group list-group-flush">
+          @for (activity of recentActivities; track activity.description; let i = $index) {
+            <div class="list-group-item border-0 py-3">
+              <div class="d-flex align-items-start">
+                <div class="me-3">
+                  <div class="bg-light rounded-circle p-2">
+                    <i class="{{ activity.icon }} {{ activity.color }}"></i>
+                  </div>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="mb-1 fw-semibold">{{ activity.type }}</h6>
+                  <p class="mb-1 text-muted small">{{ activity.description }}</p>
+                  <small class="text-muted">{{ activity.time }}</small>
+                </div>
+                @if (i === 0) {
+                  <span class="badge bg-success">Nouveau</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+      <div class="card-footer bg-transparent text-center py-2">
+        <a href="#" class="text-decoration-none small">
+          Voir historique complet <i class="bi bi-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+    <!-- Troisième ligne : Statistiques détaillées -->
+    <div class="row">
+      <!-- Répartition par Département -->
+      <div class="col-lg-6 mb-4">
+        <div class="card shadow h-100">
+          <div class="card-header bg-white border-0">
+            <h5 class="mb-0">Répartition par Département</h5>
+          </div>
+          <div class="card-body">
+            <div class="text-center py-4">
+              <i class="bi bi-pie-chart fs-1 text-muted opacity-25"></i>
+              <p class="text-muted mt-2">Graphique de répartition à venir</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Performance Mensuelle -->
+      <div class="col-lg-6 mb-4">
+        <div class="card shadow h-100">
+          <div class="card-header bg-white border-0">
+            <h5 class="mb-0">Performance Mensuelle</h5>
+          </div>
+          <div class="card-body">
+            <div class="text-center py-4">
+              <i class="bi bi-bar-chart fs-1 text-muted opacity-25"></i>
+              <p class="text-muted mt-2">Graphique de performance à venir</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>
